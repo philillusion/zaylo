@@ -1,0 +1,15 @@
+# Ignore all .log files
+*.log
+
+# Ignore the 'node_modules' directory
+node_modules/
+
+# Ignore a specific configuration file
+config/secrets.env
+
+# Ignore temporary files created by the operating system
+.DS_Store
+Thumbs.db
+.env
+# Include a specific file even if other patterns would ignore it
+!src/important_file.js

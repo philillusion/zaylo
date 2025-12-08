@@ -31,7 +31,8 @@ const objectFields = {
   Contact: 'Id, FirstName, LastName, Email, Phone, CreatedDate',
   Lead: 'Id, FirstName, LastName, Company, Email, Status, CreatedDate',
   Case: 'Id, Subject, Status, Priority, CreatedDate',
-  Opportunity: 'Id, Name, StageName, Amount, CloseDate, CreatedDate'
+  Opportunity: 'Id, Name, StageName, Amount, CloseDate, CreatedDate',
+  Contract: 'Id, AccountId, Status, StartDate, ContractTerm, OwnerExpirationNotice, CreatedDate'
 };
 
 // Create record
