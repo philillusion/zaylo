@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Menu, Home, Building2, Users, Target, FileText, DollarSign, Search, Bell, Settings, ChevronDown, Plus, X, Check, AlertCircle, Loader2, Upload, Eye, Edit, Trash2, LogOut, Download, ChevronRight, ArrowLeft, ExternalLink, Package, Warehouse, ShoppingCart, Truck, Receipt, CreditCard, ShoppingBag, Briefcase, Calendar, Activity } from 'lucide-react';
+import Chatbot from './Chatbot';  // Add this line
+import { Menu, Home, MessageCircle, Building2, Users, Target, FileText, DollarSign, Search, Bell, Settings, ChevronDown, Plus, X, Check, AlertCircle, Loader2, Upload, Eye, Edit, Trash2, LogOut, Download, ChevronRight, ArrowLeft, ExternalLink, Package, Warehouse, ShoppingCart, Truck, Receipt, CreditCard, ShoppingBag, Briefcase, Calendar, Activity } from 'lucide-react';
 // ========================================
 // EMBEDDED CONFIGURATION (No separate file needed!)
 // ========================================
@@ -7,6 +8,7 @@ import { Menu, Home, Building2, Users, Target, FileText, DollarSign, Search, Bel
 // Navigation items
 const navItems = [
   { id: 'Home', icon: Home, label: 'Home' },
+  { id: 'Chatbot', icon: MessageCircle, label: 'Chat', category: 'AI' }, // Add this line
   { id: 'Account', icon: Building2, label: 'Accounts' },
   { id: 'Contact', icon: Users, label: 'Contacts' },
   { id: 'Lead', icon: Target, label: 'Leads' },
@@ -124,7 +126,7 @@ export default function App() {
   const [fetchingRecords, setFetchingRecords] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
-  
+
   // Detail view states
   const [detailView, setDetailView] = useState(null);
   const [relatedRecords, setRelatedRecords] = useState({});
@@ -136,7 +138,7 @@ export default function App() {
     if (user) {
       setCurrentUser(JSON.parse(user));
       setIsAuthenticated(true);
-      
+
       // Test backend connection
       fetch(`${API}/health`)
         .then(res => res.json())
@@ -148,9 +150,9 @@ export default function App() {
         })
         .catch(err => {
           console.error('❌ Backend health check failed:', err);
-          setToast({ 
-            message: 'Cannot connect to backend. Make sure server is running on port 3001', 
-            type: 'error' 
+          setToast({
+            message: 'Cannot connect to backend. Make sure server is running on port 3001',
+            type: 'error'
           });
         });
     }
@@ -167,14 +169,14 @@ export default function App() {
     try {
       console.log(`Fetching ${activeTab} records from ${API}/${activeTab}`);
       const res = await fetch(`${API}/${activeTab}`);
-      
+
       if (!res.ok) {
         throw new Error(`HTTP ${res.status}: ${res.statusText}`);
       }
-      
+
       const data = await res.json();
       console.log(`Response for ${activeTab}:`, data);
-      
+
       if (data.success) {
         setRecords(data.records);
         console.log(`✅ Loaded ${data.records.length} ${activeTab} records`);
@@ -183,9 +185,9 @@ export default function App() {
       }
     } catch (err) {
       console.error(`❌ Failed to fetch ${activeTab}:`, err);
-      setToast({ 
-        message: `Failed to fetch records: ${err.message}. Is backend running on port 3001?`, 
-        type: 'error' 
+      setToast({
+        message: `Failed to fetch records: ${err.message}. Is backend running on port 3001?`,
+        type: 'error'
       });
       setRecords([]);
     } finally {
@@ -216,7 +218,7 @@ export default function App() {
       const isUpdate = formData.Id ? true : false;
       const method = isUpdate ? 'PATCH' : 'POST';
       const url = isUpdate ? `${API}/${activeTab}/${formData.Id}` : `${API}/${activeTab}`;
-      
+
       // Filter out read-only fields that Salesforce won't accept
       const readOnlyFields = ['Id', 'CreatedDate', 'CreatedById', 'LastModifiedDate', 'LastModifiedById', 'SystemModstamp', 'IsDeleted'];
       const cleanData = Object.keys(formData)
@@ -225,9 +227,9 @@ export default function App() {
           obj[key] = formData[key];
           return obj;
         }, {});
-      
+
       console.log('📤 Submitting data:', cleanData);
-      
+
       const res = await fetch(url, {
         method: method,
         headers: { 'Content-Type': 'application/json' },
@@ -266,9 +268,9 @@ export default function App() {
       const res = await fetch(`${API}/${activeTab}/${recordId}`, {
         method: 'DELETE',
       });
-      
+
       const data = await res.json();
-      
+
       if (data.success) {
         setToast({ message: `${activeTab} deleted successfully!`, type: 'success' });
         fetchRecords();
@@ -286,10 +288,10 @@ export default function App() {
     console.log(`📋 Viewing detail for ${activeTab}:`, record);
     setDetailView(record);
     setRelatedRecords({});
-    
+
     const rels = relationships[activeTab] || [];
     console.log(`Found ${rels.length} relationships for ${activeTab}`);
-    
+
     rels.forEach(rel => {
       if (!rel.single) {
         console.log(`Fetching related ${rel.object} where ${rel.field} = ${record.Id}`);
@@ -312,7 +314,7 @@ export default function App() {
     setDetailView(null);
     setRelatedRecords({});
     setShowForm(false);
-    
+
     if (recordId) {
       setTimeout(async () => {
         try {
@@ -380,16 +382,18 @@ export default function App() {
       {showImportModal && <ImportModal activeTab={activeTab} onClose={() => setShowImportModal(false)} onSuccess={() => { fetchRecords(); setToast({ message: 'Import successful!', type: 'success' }); }} setToast={setToast} />}
 
       <Header sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} currentUser={currentUser} onLogout={handleLogout} />
-      <Sidebar 
-        sidebarOpen={sidebarOpen} 
-        activeTab={activeTab} 
-        setActiveTab={(tab) => { setActiveTab(tab); setDetailView(null); setFormData({}); setShowForm(false); }} 
+      <Sidebar
+        sidebarOpen={sidebarOpen}
+        activeTab={activeTab}
+        setActiveTab={(tab) => { setActiveTab(tab); setDetailView(null); setFormData({}); setShowForm(false); }}
       />
 
       <main style={{ paddingTop: '80px', marginLeft: sidebarOpen ? '256px' : '80px', transition: 'margin-left 0.3s' }}>
         <div style={{ padding: '32px' }}>
           {activeTab === 'Home' ? (
             <DashboardView records={records} setShowImportModal={setShowImportModal} onNavigate={handleNavigateToRelated} />
+          ) : activeTab === 'Chatbot' ? (
+            <Chatbot />
           ) : detailView ? (
             <DetailView
               objectName={activeTab}
@@ -618,9 +622,9 @@ function LoginPage({ onLogin, setToast }) {
         email: email,
         role: 'Administrator'
       };
-      
+
       console.log('Login successful, user:', user);
-      
+
       onLogin(user);
       setToast({ message: 'Login successful!', type: 'success' });
       setLoading(false);
@@ -653,13 +657,13 @@ function LoginPage({ onLogin, setToast }) {
               }}
               placeholder="you@example.com"
               autoComplete="email"
-              style={{ 
-                width: '100%', 
-                padding: '12px 16px', 
-                backgroundColor: 'rgba(30, 41, 59, 0.5)', 
-                border: '1px solid rgba(51, 65, 85, 0.5)', 
-                borderRadius: '12px', 
-                color: '#fff', 
+              style={{
+                width: '100%',
+                padding: '12px 16px',
+                backgroundColor: 'rgba(30, 41, 59, 0.5)',
+                border: '1px solid rgba(51, 65, 85, 0.5)',
+                borderRadius: '12px',
+                color: '#fff',
                 fontSize: '14px',
                 outline: 'none'
               }}
@@ -682,13 +686,13 @@ function LoginPage({ onLogin, setToast }) {
               }}
               placeholder="••••••••"
               autoComplete="current-password"
-              style={{ 
-                width: '100%', 
-                padding: '12px 16px', 
-                backgroundColor: 'rgba(30, 41, 59, 0.5)', 
-                border: '1px solid rgba(51, 65, 85, 0.5)', 
-                borderRadius: '12px', 
-                color: '#fff', 
+              style={{
+                width: '100%',
+                padding: '12px 16px',
+                backgroundColor: 'rgba(30, 41, 59, 0.5)',
+                border: '1px solid rgba(51, 65, 85, 0.5)',
+                borderRadius: '12px',
+                color: '#fff',
                 fontSize: '14px',
                 outline: 'none'
               }}
@@ -700,20 +704,20 @@ function LoginPage({ onLogin, setToast }) {
           <button
             type="submit"
             disabled={loading}
-            style={{ 
-              width: '100%', 
-              padding: '14px 24px', 
-              background: loading ? '#64748b' : 'linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%)', 
-              color: '#fff', 
-              border: 'none', 
-              borderRadius: '12px', 
-              fontSize: '16px', 
-              fontWeight: 600, 
+            style={{
+              width: '100%',
+              padding: '14px 24px',
+              background: loading ? '#64748b' : 'linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%)',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '12px',
+              fontSize: '16px',
+              fontWeight: 600,
               cursor: loading ? 'not-allowed' : 'pointer',
               opacity: 1,
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center', 
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
               gap: '8px',
               transition: 'all 0.2s'
             }}
@@ -744,18 +748,18 @@ function LoginPage({ onLogin, setToast }) {
               setEmail('demo@test.com');
               setPassword('demo123');
               setTimeout(() => {
-                handleSubmit({ preventDefault: () => {}, stopPropagation: () => {} });
+                handleSubmit({ preventDefault: () => { }, stopPropagation: () => { } });
               }, 100);
             }}
-            style={{ 
-              width: '100%', 
-              padding: '10px 20px', 
-              background: 'rgba(30, 41, 59, 0.5)', 
-              color: '#94a3b8', 
-              border: '1px solid rgba(51, 65, 85, 0.5)', 
-              borderRadius: '8px', 
-              fontSize: '13px', 
-              fontWeight: 500, 
+            style={{
+              width: '100%',
+              padding: '10px 20px',
+              background: 'rgba(30, 41, 59, 0.5)',
+              color: '#94a3b8',
+              border: '1px solid rgba(51, 65, 85, 0.5)',
+              borderRadius: '8px',
+              fontSize: '13px',
+              fontWeight: 500,
               cursor: 'pointer',
               transition: 'all 0.2s'
             }}
@@ -1151,7 +1155,7 @@ function ObjectView({ objectName, records, formData, setFormData, handleSubmit, 
   // Fetch lookup records for relationship fields
   const fetchLookupRecords = async (lookupObject) => {
     if (lookupRecords[lookupObject]) return;
-    
+
     try {
       const res = await fetch(`${API}/${lookupObject}`);
       const data = await res.json();
@@ -1168,9 +1172,9 @@ function ObjectView({ objectName, records, formData, setFormData, handleSubmit, 
 
     if (field.type === 'select') {
       return (
-        <select 
-          value={formData[field.name] || ''} 
-          onChange={(e) => setFormData({ ...formData, [field.name]: e.target.value })} 
+        <select
+          value={formData[field.name] || ''}
+          onChange={(e) => setFormData({ ...formData, [field.name]: e.target.value })}
           style={{ width: '100%', padding: '10px 16px', backgroundColor: 'rgba(30, 41, 59, 0.5)', border: '1px solid rgba(51, 65, 85, 0.5)', borderRadius: '12px', color: '#fff', fontSize: '14px' }}
         >
           <option value="">-- Select --</option>
@@ -1214,12 +1218,12 @@ function ObjectView({ objectName, records, formData, setFormData, handleSubmit, 
       );
     } else {
       return (
-        <input 
-          type={field.type || 'text'} 
-          value={formData[field.name] || ''} 
-          onChange={(e) => setFormData({ ...formData, [field.name]: e.target.value })} 
+        <input
+          type={field.type || 'text'}
+          value={formData[field.name] || ''}
+          onChange={(e) => setFormData({ ...formData, [field.name]: e.target.value })}
           placeholder={field.placeholder}
-          style={{ width: '100%', padding: '10px 16px', backgroundColor: 'rgba(30, 41, 59, 0.5)', border: '1px solid rgba(51, 65, 85, 0.5)', borderRadius: '12px', color: '#fff', fontSize: '14px' }} 
+          style={{ width: '100%', padding: '10px 16px', backgroundColor: 'rgba(30, 41, 59, 0.5)', border: '1px solid rgba(51, 65, 85, 0.5)', borderRadius: '12px', color: '#fff', fontSize: '14px' }}
         />
       );
     }
